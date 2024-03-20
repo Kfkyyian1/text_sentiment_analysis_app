@@ -321,15 +321,11 @@ def page_analyze_xlsx():
             # Get the top 10 neutral words
             top_10_neutral_words = word_df[(word_df['Count'] > 0) & (word_df['word_score'] >= -suggested_threshold) & (word_df['word_score'] <= suggested_threshold)].head(10)
             
-            # Checkbox to toggle between plotting by month and plotting by year
-            plot_by_month = st.checkbox('Plot by Month', value=False)
+            # Extract year from datetime
+            df['year'] = df['date'].dt.year
             
-            if plot_by_month:
-                # Plot by month
-                time_series_data = df.groupby([df['date'].dt.to_period('M')]).sum()  # Group by month and sum the counts
-            else:
-                # Plot by year
-                time_series_data = df.groupby([df['date'].dt.to_period('Y')]).sum()  # Group by year and sum the counts
+            # Group by year and word, then sum the counts
+            time_series_data = df.groupby(['year', 'analysis']).size().unstack(fill_value=0)
             
             # Filter time series data to include only the top 10 neutral words
             time_series_data = time_series_data[top_10_neutral_words['Word']]
@@ -340,15 +336,13 @@ def page_analyze_xlsx():
                 plt.plot(time_series_data.index, time_series_data[word], label=word)
             
             # Customize the plot
-            plt.xlabel('Date')
+            plt.xlabel('Year')
             plt.ylabel('Count')
             plt.legend(title='Neutral Words')
             plt.grid(True)
             
             # Display the plot
             st.pyplot(plt)
-
-
 
     st.write("""
     **Navigate to more tools on the left < < <**
