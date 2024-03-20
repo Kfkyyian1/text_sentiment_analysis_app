@@ -329,10 +329,11 @@ def page_analyze_xlsx():
             
             # Filter time series data to include only the top 10 neutral words
             selected_words = top_10_neutral_words['Word'].tolist()
-            print("Selected words:", selected_words)
-            print("Columns in time_series_data:", time_series_data.columns.tolist())
+            st.write("Selected words:", selected_words)
+            st.write("Columns in time_series_data:", time_series_data.columns.tolist())
             
             time_series_data = time_series_data[selected_words]
+
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
