@@ -313,14 +313,14 @@ def page_analyze_xlsx():
             # PLOT 4: Time series plot of neutral words
             # Remove missing dates records
             df = df.dropna(subset=['date'])
-
+            
             # Convert year-only text dates to datetime
             df['date'] = pd.to_datetime(df['date'], format='%Y', errors='coerce')
             df = df.dropna(subset=['date'])  # Drop NaT values after conversion
-
+            
             # Get the top 10 neutral words
             top_10_neutral_words = word_df[(word_df['Count'] > 0) & (word_df['word_score'] >= -suggested_threshold) & (word_df['word_score'] <= suggested_threshold)].head(10)
-
+            
             # Checkbox to toggle between plotting by month and plotting by year
             plot_by_month = st.checkbox('Plot by Month', value=False)
             
@@ -330,15 +330,12 @@ def page_analyze_xlsx():
             else:
                 # Plot by year
                 time_series_data = df.groupby([df['date'].dt.to_period('Y'), 'analysis']).size().unstack(fill_value=0)
-
-            # Pivot the DataFrame to have words as columns
-            time_series_pivot = time_series_data.pivot_table(index='date', columns='analysis', fill_value=0)
             
-            # Remove the hierarchical column index
-            time_series_pivot.columns = time_series_pivot.columns.droplevel()
+            # Pivot the DataFrame to have words as columns
+            time_series_pivot = time_series_data.pivot_table(index=time_series_data.index, columns=time_series_data.columns, fill_value=0)
             
             # Filter time series pivot to include only the top 10 neutral words
-            time_series_pivot = time_series_pivot[top_10_neutral_words]
+            time_series_pivot = time_series_pivot[top_10_neutral_words['Word']]
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
