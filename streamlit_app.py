@@ -326,21 +326,18 @@ def page_analyze_xlsx():
             
             if plot_by_month:
                 # Plot by month
-                time_series_data = df.groupby([df['date'].dt.to_period('M'), 'analysis']).size().unstack(fill_value=0)
+                time_series_data = df.groupby([df['date'].dt.to_period('M')]).sum()  # Group by month and sum the counts
             else:
                 # Plot by year
-                time_series_data = df.groupby([df['date'].dt.to_period('Y'), 'analysis']).size().unstack(fill_value=0)
+                time_series_data = df.groupby([df['date'].dt.to_period('Y')]).sum()  # Group by year and sum the counts
             
-            # Pivot the DataFrame to have words as columns
-            time_series_pivot = time_series_data.pivot_table(index=time_series_data.index, columns=time_series_data.columns, fill_value=0)
-            
-            # Filter time series pivot to include only the top 10 neutral words
-            time_series_pivot = time_series_pivot[top_10_neutral_words['Word']]
+            # Filter time series data to include only the top 10 neutral words
+            time_series_data = time_series_data[top_10_neutral_words['Word']]
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
-            for word in time_series_pivot.columns:
-                plt.plot(time_series_pivot.index, time_series_pivot[word], label=word)
+            for word in time_series_data.columns:
+                plt.plot(time_series_data.index, time_series_data[word], label=word)
             
             # Customize the plot
             plt.xlabel('Date')
@@ -350,6 +347,7 @@ def page_analyze_xlsx():
             
             # Display the plot
             st.pyplot(plt)
+
 
 
     st.write("""
