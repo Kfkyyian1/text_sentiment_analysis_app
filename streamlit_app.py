@@ -325,7 +325,7 @@ def page_analyze_xlsx():
             df['year'] = df['date'].dt.year
             
             # Group by year and word, then sum the counts
-            time_series_data = df.groupby(['year', 'analysis']).size().unstack(fill_value=0)
+            time_series_data = df.groupby(['year', 'Word']).size().unstack(fill_value=0)
             
             # Filter time series data to include only the top 10 neutral words
             selected_words = top_10_neutral_words['Word'].tolist()
