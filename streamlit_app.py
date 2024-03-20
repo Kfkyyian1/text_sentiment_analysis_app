@@ -330,15 +330,20 @@ def page_analyze_xlsx():
             else:
                 # Plot by year
                 time_series_data = df.groupby([df['date'].dt.to_period('Y'), 'analysis']).size().unstack(fill_value=0)
+
+            # Pivot the DataFrame to have words as columns
+            time_series_pivot = time_series_data.pivot_table(index='date', columns='analysis', fill_value=0)
             
-            # Filter time series data to include only the top 10 neutral words
-            top_10_neutral_words = word_df[(word_df['Count'] > 0) & (word_df['word_score'] >= -suggested_threshold) & (word_df['word_score'] <= suggested_threshold)].head(10)['Word']
-            time_series_data = time_series_data[top_10_neutral_words]
+            # Remove the hierarchical column index
+            time_series_pivot.columns = time_series_pivot.columns.droplevel()
+            
+            # Filter time series pivot to include only the top 10 neutral words
+            time_series_pivot = time_series_pivot[top_10_neutral_words]
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
-            for word in time_series_data.columns:
-                plt.plot(time_series_data.index, time_series_data[word], label=word)
+            for word in time_series_pivot.columns:
+                plt.plot(time_series_pivot.index, time_series_pivot[word], label=word)
             
             # Customize the plot
             plt.xlabel('Date')
