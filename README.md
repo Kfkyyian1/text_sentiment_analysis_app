@@ -1,7 +1,5 @@
 # Automated Text Sentiment Analysis Webapp
 
-Webapp Link: https://textsentimentanalysisapp.streamlit.app/
-<br>
 Demo Video: https://youtu.be/SpA4Y_5F2uQ
 
 ## Introduction & Background
