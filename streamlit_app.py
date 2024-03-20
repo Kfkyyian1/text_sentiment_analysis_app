@@ -325,14 +325,15 @@ def page_analyze_xlsx():
             # Select the top 10 most used neutral words
             top_10_neutral_words = word_df[(word_df['Count'] > 0) & (word_df['word_score'] >= -suggested_threshold) & (word_df['word_score'] <= suggested_threshold)].head(10)
             
-            # Extract year from datetime
+            # Extract year and month from the date
             df['year'] = df['date'].dt.year
+            df['month'] = df['date'].dt.month_name()
             
             # Filter DataFrame to include only neutral words
             neutral_words_df = df[df['comments'].isin(top_10_neutral_words['Word'])]
             
-            # Group by year and word, then count the occurrences
-            time_series_data = neutral_words_df.groupby(['year', 'comments']).size().unstack(fill_value=0)
+            # Group by year and month, then count the occurrences
+            time_series_data = neutral_words_df.groupby(['year', 'month', 'comments']).size().unstack(fill_value=0)
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
@@ -340,10 +341,12 @@ def page_analyze_xlsx():
                 plt.plot(time_series_data.index, time_series_data[word], label=word)
             
             # Customize the plot
-            plt.xlabel('Year')
+            plt.xlabel('Month')
             plt.ylabel('Count')
-            plt.legend(title='Neutral Words')
+            plt.legend(title='Neutral Words', bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
             plt.grid(True)
+            
             
             # Display the plot
             st.pyplot(plt)
