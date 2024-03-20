@@ -347,9 +347,31 @@ def page_analyze_xlsx():
             plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
             plt.grid(True)
             
+            # Display the plot
+            st.pyplot(plt)
+
+             # Plot time series analysis for each selected word
+            plt.figure(figsize=(10, 6))
+            
+            # Print the data to debug
+            st.write("Time series data:")
+            st.write(time_series_data)
+            
+            for word in time_series_data.columns:
+                st.write(f"Plotting word: {word}")
+                st.write(f"Word data: {time_series_data[word]}")
+                plt.plot(time_series_data.index, time_series_data[word], label=word)
+            
+            # Customize the plot
+            plt.xlabel('Month')
+            plt.ylabel('Count')
+            plt.legend(title='Neutral Words', bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+            plt.grid(True)
             
             # Display the plot
             st.pyplot(plt)
+
 
 
     st.write("""
