@@ -328,7 +328,11 @@ def page_analyze_xlsx():
             time_series_data = df.groupby(['year', 'analysis']).size().unstack(fill_value=0)
             
             # Filter time series data to include only the top 10 neutral words
-            time_series_data = time_series_data[top_10_neutral_words['Word'].tolist()]
+            selected_words = top_10_neutral_words['Word'].tolist()
+            print("Selected words:", selected_words)
+            print("Columns in time_series_data:", time_series_data.columns.tolist())
+            
+            time_series_data = time_series_data[selected_words]
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
@@ -343,6 +347,7 @@ def page_analyze_xlsx():
             
             # Display the plot
             st.pyplot(plt)
+
 
     st.write("""
     **Navigate to more tools on the left < < <**
