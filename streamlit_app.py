@@ -318,22 +318,21 @@ def page_analyze_xlsx():
             df['date'] = pd.to_datetime(df['date'], format='%Y', errors='coerce')
             df = df.dropna(subset=['date'])  # Drop NaT values after conversion
             
-            # Get the top 10 neutral words
+            # Calculate sentiment score for each word in the DataFrame
+            word_df['word_score'] = word_df['Word'].apply(lambda word: round(TextBlob(word).sentiment.polarity, 2))
+            
+            # Determine neutral words based on the threshold
+            # Select the top 10 most used neutral words
             top_10_neutral_words = word_df[(word_df['Count'] > 0) & (word_df['word_score'] >= -suggested_threshold) & (word_df['word_score'] <= suggested_threshold)].head(10)
             
             # Extract year from datetime
             df['year'] = df['date'].dt.year
             
-            # Group by year and word, then sum the counts
-            time_series_data = df.groupby(['year', 'Word']).size().unstack(fill_value=0)
+            # Filter DataFrame to include only neutral words
+            neutral_words_df = df[df['comments'].isin(top_10_neutral_words['Word'])]
             
-            # Filter time series data to include only the top 10 neutral words
-            selected_words = top_10_neutral_words['Word'].tolist()
-            st.write("Selected words:", selected_words)
-            st.write("Columns in time_series_data:", time_series_data.columns.tolist())
-            
-            time_series_data = time_series_data[selected_words]
-
+            # Group by year and word, then count the occurrences
+            time_series_data = neutral_words_df.groupby(['year', 'comments']).size().unstack(fill_value=0)
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
