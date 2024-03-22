@@ -315,7 +315,7 @@ def page_analyze_xlsx():
             neutral_comments = df[df['analysis'] == 'Neutral'][['date', 'comments']]
             
             # Standardize the date format to DD/MM/YYYY
-            neutral_comments['date'] = pd.to_datetime(neutral_comments['date'], format='%d/%m/%Y', errors='coerce')
+            neutral_comments['date'] = pd.to_datetime(neutral_comments['date'], format='%d/%m/%Y', errors='coerce').dt.strftime('%d/%m/%Y')
             
             # Clean and count the neutral comments
             neutral_word_df = clean_and_count(' '.join(neutral_comments['comments']))
@@ -325,13 +325,12 @@ def page_analyze_xlsx():
             
             # Combine top 10 neutral words with standardized dates
             neutral_time_series_data = pd.DataFrame(index=pd.to_datetime(neutral_comments['date'], format='%d/%m/%Y', errors='coerce'))
-            
             for word in top_10_neutral_words:
                 neutral_time_series_data[word] = neutral_comments['comments'].str.count(word)
-            
-            # Plot by month or year based on user selection
+
             plot_by_month = True  # Default value
             
+            # Toggle between plotting by month or year based on user selection
             if plot_by_month:
                 # Plot by month
                 neutral_time_series_data = neutral_time_series_data.resample('M').sum()
@@ -340,20 +339,21 @@ def page_analyze_xlsx():
                 # Plot by year
                 neutral_time_series_data = neutral_time_series_data.resample('Y').sum()
                 x_label = 'Year'
-            
+
+
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
             for word in neutral_time_series_data.columns:
                 plt.plot(neutral_time_series_data.index, neutral_time_series_data[word], label=word)
-            
+                
             # Customize the plot
             plt.xlabel(x_label)
             plt.ylabel('Count')
             plt.legend(title='Neutral Words')
             plt.grid(True)
-            
+
             # Display the plot
-            plt.show()
+            st.pyplot(plt)
             
             # Print the words
             st.write(neutral_time_series_data)
