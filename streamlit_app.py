@@ -328,7 +328,7 @@ def page_analyze_xlsx():
             for word in top_10_neutral_words:
                 neutral_time_series_data[word] = neutral_comments['comments'].str.count(word)
 
-            plot_by_month = False  # Default value
+            plot_by_month = True  # Default value
             
             # Toggle between plotting by month or year based on user selection
             if plot_by_month:
