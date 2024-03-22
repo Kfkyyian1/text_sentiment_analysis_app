@@ -338,7 +338,17 @@ def page_analyze_xlsx():
             plt.figure(figsize=(10, 6))
             for word in neutral_time_series_data.columns:
                 plt.plot(neutral_time_series_data.index, neutral_time_series_data[word], label=word)
+
+            plot_by_month = False  # Default value
             
+            # Now use plot_by_month
+            if plot_by_month:
+                # Plot by month
+                neutral_time_series_data = neutral_time_series_data.resample('M').sum()
+            else:
+                # Plot by year
+                neutral_time_series_data = neutral_time_series_data.resample('Y').sum()
+                
             # Customize the plot
             if plot_by_month:
                 plt.xlabel('Month')
