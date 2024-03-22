@@ -311,29 +311,39 @@ def page_analyze_xlsx():
             st.pyplot(plt)
 
             # PLOT 4: Time series plot of neutral words
-            # Convert date column to datetime with specified format
-            df['date'] = pd.to_datetime(df['date'], format='%d/%m/%Y', errors='coerce')
+            # Extract comments labelled as neutral with their corresponding dates
+            neutral_comments = df[df['analysis'] == 'Neutral'][['date', 'comments']]
             
-            # Drop rows with missing or invalid dates
-            df.dropna(subset=['date'], inplace=True)
+            # Standardize the date format to DD/MM/YYYY
+            neutral_comments['date'] = pd.to_datetime(neutral_comments['date'], format='%d/%m/%Y', errors='coerce').dt.strftime('%d/%m/%Y')
             
-            # Extract year from datetime
-            df['year'] = df['date'].dt.year
+            # Clean and count the neutral comments
+            neutral_word_df = clean_and_count(' '.join(neutral_comments['comments']))
             
-            # Group by year and word, then sum the counts
-            time_series_data = df.groupby(['year', 'analysis']).size().unstack(fill_value=0)
+            # Find top 10 most used neutral words
+            top_10_neutral_words = neutral_word_df.head(10)['Word']
             
-            # Filter time series data to include only the top 10 neutral words
-            selected_words = top_10_neutral_words['Word'].tolist()
-            time_series_data = time_series_data[selected_words]
+            # Combine top 10 neutral words with standardized dates
+            neutral_time_series_data = pd.DataFrame(index=pd.to_datetime(neutral_comments['date'], format='%d/%m/%Y', errors='coerce'))
+            for word in top_10_neutral_words:
+                neutral_time_series_data[word] = neutral_comments['comments'].str.count(word)
+            
+            # Group by month/year and sum the counts
+            if plot_by_month:
+                neutral_time_series_data = neutral_time_series_data.resample('M').sum()
+            else:
+                neutral_time_series_data = neutral_time_series_data.resample('Y').sum()
             
             # Plot time series analysis for each selected word
             plt.figure(figsize=(10, 6))
-            for word in time_series_data.columns:
-                plt.plot(time_series_data.index, time_series_data[word], label=word)
+            for word in neutral_time_series_data.columns:
+                plt.plot(neutral_time_series_data.index, neutral_time_series_data[word], label=word)
             
             # Customize the plot
-            plt.xlabel('Year')
+            if plot_by_month:
+                plt.xlabel('Month')
+            else:
+                plt.xlabel('Year')
             plt.ylabel('Count')
             plt.legend(title='Neutral Words')
             plt.grid(True)
@@ -341,9 +351,8 @@ def page_analyze_xlsx():
             # Display the plot
             st.pyplot(plt)
             
-            # Print the data to debug
-            st.write("Time series data:")
-            st.write(time_series_data)
+            # Print the words
+            st.write(top_10_neutral_words)
 
 
     st.write("""
