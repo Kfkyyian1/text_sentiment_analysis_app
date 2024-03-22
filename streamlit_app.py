@@ -318,10 +318,6 @@ def page_analyze_xlsx():
             neutral_comments['date'] = pd.to_datetime(neutral_comments['date'], format='%d/%m/%Y', errors='coerce')
             
             # Clean and count the neutral comments
-            def clean_and_count(text):
-                # Your implementation here for cleaning and counting words
-                pass
-            
             neutral_word_df = clean_and_count(' '.join(neutral_comments['comments']))
             
             # Find top 10 most used neutral words
