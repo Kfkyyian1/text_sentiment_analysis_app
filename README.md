@@ -1,6 +1,7 @@
 # Automated Text Sentiment Analysis Webapp
 
 Demo Video: https://youtu.be/SpA4Y_5F2uQ
+Webapp: https://textsentimentanalysisapp.streamlit.app/
 
 ## Introduction & Background
 Sentiment Analysis plays a crucial role in understanding the collective mood and emotions of the general public, providing valuable insights into various contexts. It involves analysing data and categorizing it based on the sentiments expressed within, thereby shedding light on people's preferences, desires, and concerns.
