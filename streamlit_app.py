@@ -150,7 +150,11 @@ def page_analyze_xlsx():
     st.write('''
         Upload your XLSX file and analyze sentiment through visualisation.
         
-        **Disclaimer:** Before uploading your file, please ensure the column containing the text to analyze is labeled as **comments** in the header. Failure to adhere to these guidelines may result in unexpected behavior during analysis.
+        **Disclaimer:** Before uploading your file, please ensure:
+        1. The column containing the text to analyze is labeled as **comments** in the header. 
+        2. The column containing dates is labeled as **dates** in the header and formatted as DD/MM/YYYY or MM/YYYY.
+        
+        Failure to adhere to these guidelines may result in unexpected behavior during analysis.
         ''')
     #- Ensure that the column containing dates is labeled as **date** and the column is in text or date format.
     
