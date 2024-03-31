@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import norm  # to plot bell curve
 from sklearn.metrics import f1_score, precision_score, recall_score # to calculate F1 score, precision and recall score
-import re
+import re #new
+import matplotlib.dates as mdates
 
 # Disable the PyplotGlobalUseWarning
 st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -115,14 +116,15 @@ def page_introduction():
     3. Facilitate effective marketing strategies by gauging brand perception.
 
     **How to Start:**
-    1. Clean Text: Enter the text you want to analyze and clean it for sentiment analysis.
-    *(i.e. I LOVE all the 10 cupcakes!)*
-    2. Perform Sentiment Analysis: Input your text to receive sentiment polarity and subjectivity scores.
+    Input your text to receive sentiment polarity and subjectivity scores.
     """)
-    pre = st.text_input('1. Clean Text: ')
-    if pre:
-         st.write(cleantext.clean(pre, clean_all= False, extra_spaces=True ,
-                                 stopwords=True ,lowercase=True ,numbers=True , punct=True))
+
+    # 1. Clean Text: Enter the text you want to analyze and clean it for sentiment analysis.*(i.e. I LOVE all the 10 cupcakes!)*
+
+    #pre = st.text_input('1. Clean Text: ')
+    #if pre:
+    #     st.write(cleantext.clean(pre, clean_all= False, extra_spaces=True ,
+    #                             stopwords=True ,lowercase=True ,numbers=True , punct=True))
         
     text = st.text_input('Perform Sentiment Analysis: ')
     if text:
@@ -142,6 +144,7 @@ def page_introduction():
         
             
 # Page 2: Analyze Text In XLSX File
+
 def page_analyze_xlsx():
     st.title('Analyze Text In XLSX File')
     st.write('''
@@ -151,8 +154,7 @@ def page_analyze_xlsx():
         ''')
     #- Ensure that the column containing dates is labeled as **date** and the column is in text or date format.
     
-    upl = st.file_uploader('Upload File')
-
+    upl = st.file_uploader("Upload a file", type=['xlsx'], accept_multiple_files=False)
 
     if upl:
             df = pd.read_excel(upl, engine='openpyxl')
@@ -252,7 +254,7 @@ def page_analyze_xlsx():
 
             st.pyplot(fig)
     
-            # Display top 10 most used words
+            # Display top most used words
             word_df = clean_and_count(' '.join(df['comments']))
             st.write("**Word Sentiment Analysis**")
             st.write("Top 10 Most Used Words")
@@ -292,12 +294,14 @@ def page_analyze_xlsx():
             st.pyplot(plt)
 
             #PLOT 3: Bar Plot of Neutral Words
-            # Calculate sentiment score for each word in the DataFrame
-            word_df['word_score'] = word_df['Word'].apply(lambda word: round(TextBlob(word).sentiment.polarity, 2))
+            # Filter comments labeled as Neutral
+            neutral_comments = df[df['analysis'] == 'Neutral']['comments']
 
-            # Determine neutral words based on the threshold
+            # Count occurrences of each word in neutral comments
+            neutral_word_counts = clean_and_count(' '.join(neutral_comments))
+
             # Select the top 10 most used neutral words
-            top_10_neutral_words = word_df[(word_df['Count'] > 0) & (word_df['word_score'] >= -suggested_threshold) & (word_df['word_score'] <= suggested_threshold)].head(10)
+            top_10_neutral_words = neutral_word_counts.head(10)
 
             # Create a horizontal bar chart for the top 10 neutral words with their counts
             st.write("Top 10 Most Used Neutral Words")
@@ -305,10 +309,92 @@ def page_analyze_xlsx():
             plt.barh(top_10_neutral_words['Word'], top_10_neutral_words['Count'], color='orange')
             plt.xlabel('Count')
             plt.ylabel('Words')
-            #plt.title('Top 10 Most Used Neutral Words')
             plt.gca().invert_yaxis()  # Invert y-axis to display words from top to bottom
             plt.show()
             st.pyplot(plt)
+
+            # PLOT 4: Time series plot of neutral words
+            st.write("Neutral Words Time Series")
+            # Extract comments labelled as neutral with their corresponding dates
+            neutral_comments = df[df['analysis'] == 'Neutral'][['date', 'comments']]
+            
+            # Standardize the date format
+            neutral_comments['date'] = pd.to_datetime(neutral_comments['date'], errors='coerce')
+            
+            # Clean and count the neutral comments
+            neutral_word_df = clean_and_count(' '.join(neutral_comments['comments']))
+            
+            # Find top 10 most used neutral words
+            top_10_neutral_words = neutral_word_df.head(10)['Word']
+            
+            # Combine top 10 neutral words with standardized dates
+            neutral_time_series_data = pd.DataFrame(index=pd.to_datetime(neutral_comments['date'], format='%Y/%M/%D', errors='coerce'))
+
+            # Resample the DataFrame by month and sum the counts
+            for word in top_10_neutral_words:
+                # Initialize a list to store word counts corresponding to each date
+                word_counts = []
+
+                # Iterate over each date
+                for date in neutral_time_series_data.index:
+                    # Count occurrences of the neutral word in comments for the current date
+                    count = neutral_comments[(neutral_comments['date'] == date) & (neutral_comments['comments'].str.contains(word))].shape[0]
+                    word_counts.append(count)
+
+                # Add word counts to the DataFrame as a new column
+                neutral_time_series_data[word] = word_counts
+
+            plot_by_month = st.checkbox('Plot by Month', value=False)
+        
+            
+            # Toggle between plotting by month or year based on user selection
+            if plot_by_month:
+                # Plot by month
+                neutral_time_series_data = neutral_time_series_data.resample('MS').sum()#MS means start of the month
+                x_label = 'Month'
+            else:
+                # Plot by year
+                neutral_time_series_data = neutral_time_series_data.resample('YS').sum()
+                x_label = 'Year'
+
+            # Add filtering option for year
+            years_to_plot = st.multiselect('Select Year(s) to Plot:', options=neutral_time_series_data.index.year.unique())
+
+            # Filter the data based on selected year(s)
+            filtered_data = neutral_time_series_data[neutral_time_series_data.index.year.isin(years_to_plot)]
+
+            # Add filtering option for neutral words
+            words_to_plot = st.multiselect('Select Neutral Words to Plot:', options=top_10_neutral_words)
+
+            # Filter the data based on selected neutral words
+            filtered_data = filtered_data[words_to_plot]
+            
+            # Plot time series analysis for each selected word
+            plt.figure(figsize=(20, 8))
+            for word in filtered_data.columns:
+                plt.plot(filtered_data.index, filtered_data[word], label=word)
+                
+            # Customize the plot
+            plt.xlabel(x_label)
+            plt.ylabel('Count')
+            plt.legend(title='Neutral Words')
+            plt.grid(True)
+            plt.xticks(rotation=45) 
+
+            # Set x-axis formatter if plotting by month
+            if plot_by_month:
+                try:
+                    plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+                    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
+                except Exception as e:
+                    st.error(f"Error setting x-axis formatter: {e}")
+
+
+            # Display the plot
+            st.pyplot(plt)
+            
+            # Print the words
+            st.write(filtered_data)
 
 
     st.write("""
