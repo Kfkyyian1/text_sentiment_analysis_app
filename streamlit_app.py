@@ -13,8 +13,8 @@ from sklearn.metrics import f1_score, precision_score, recall_score # to calcula
 import re #new
 import matplotlib.dates as mdates
 
-# Disable the PyplotGlobalUseWarning
-st.set_option('deprecation.showPyplotGlobalUse', False)
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # YouTube API credentials
 api_service_name = "youtube"
